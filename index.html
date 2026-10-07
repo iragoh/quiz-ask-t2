@@ -568,12 +568,35 @@
             });
         }
 
-        // Update Obstacles & Collisions
+// Update Obstacles & Collisions
         for (let i = obstacles.length - 1; i >= 0; i--) {
             let obs = obstacles[i];
             obs.y += obs.speed;
             
-            // Check collision with player
+            let obstacleDestroyed = false;
+
+            // 1. Semak perlanggaran antara peluru (bullet) dan halangan (asteroid)
+            for (let j = bullets.length - 1; j >= 0; j--) {
+                let b = bullets[j];
+                if (isCollide(b, obs)) {
+                    // Jika kena tembak, buat kesan habuk (particles) kelabu
+                    for(let k=0; k<10; k++) createParticle(obs.x+20, obs.y+20, '#9ca3af');
+                    
+                    bullets.splice(j, 1); // Buang peluru
+                    obstacles.splice(i, 1); // Buang halangan
+                    obstacleDestroyed = true; // Tandakan halangan telah musnah
+                    
+                    // Mainkan bunyi kecil jika mahu (pilihan)
+                    if(Tone.context.state === 'running') damageSynth.triggerAttackRelease("G1", "16n"); 
+                    
+                    break; // Berhenti semak peluru lain untuk halangan ini
+                }
+            }
+
+            // Jika halangan dah musnah ditembak, teruskan ke halangan seterusnya (skip kod di bawah)
+            if (obstacleDestroyed) continue;
+
+            // 2. Semak perlanggaran antara kapal (player) dan halangan
             if (isCollide(player, obs)) {
                 for(let k=0; k<10; k++) createParticle(obs.x+20, obs.y+20, '#9ca3af');
                 obstacles.splice(i, 1);
@@ -581,6 +604,7 @@
                 continue;
             }
 
+            // 3. Buang halangan jika ia dah terlepas ke bawah skrin
             if (obs.y > canvas.height) obstacles.splice(i, 1);
         }
 
