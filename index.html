@@ -551,7 +551,8 @@
         }
 
         // Spawner Logic
-        if (Math.random() < 0.02) {
+        // Spawner Logic (Halangan dikurangkan)
+        if (Math.random() < 0.005) { // Tukar 0.02 kepada 0.005
             // Spawn Obstacle (Asteroid)
             obstacles.push({
                 x: Math.random() * (canvas.width - 40),
