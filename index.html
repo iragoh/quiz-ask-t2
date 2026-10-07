@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Galactic Code Quest</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for Audio -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Press+Start+2P&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #02000d;
+            font-family: 'Inter', sans-serif;
+            color: white;
+            touch-action: none; /* Prevent scroll on mobile */
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(to bottom, #050514, #0a0a2a, #110934);
+        }
+
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+        }
+
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Glassmorphism Effect for Main Menu */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 95vh; /* Added for mobile */
+            overflow-y: auto; /* Added for mobile: allows scrolling if content is too long */
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.2), inset 0 0 20px rgba(59, 130, 246, 0.1);
+            text-align: center;
+        }
+
+        /* Custom Scrollbar for mobile glass card */
+        .glass-card::-webkit-scrollbar { width: 5px; }
+        .glass-card::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
+            background: linear-gradient(90deg, #2563eb, #7c3aed);
+            color: white;
+            font-weight: bold;
+            padding: 1rem 2rem;
+            border-radius: 9999px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.6);
+        }
+
+        .btn:active { transform: translateY(1px); }
+
+        .btn-option {
+            background: rgba(30, 41, 59, 0.8);
+            border: 2px solid #3b82f6;
+            color: white;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            margin-bottom: 0.75rem;
+            width: 100%;
+            font-size: 0.9rem; /* Slightly smaller for mobile */
+        }
+
+        .btn-option:hover { background: rgba(59, 130, 246, 0.3); }
+        .btn-option.correct { background: #10b981; border-color: #059669; color: white; }
+        .btn-option.wrong { background: #ef4444; border-color: #b91c1c; color: white; }
+
+        .shake { animation: shake 0.5s; }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Mobile Controls */
+        #mobile-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 40px;
+            box-sizing: border-box;
+            z-index: 40;
+            display: none; /* Hidden by default */
+        }
+        .control-btn {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: white;
+            user-select: none;
+            backdrop-filter: blur(5px);
+        }
+        .control-btn:active { background: rgba(255,255,255,0.3); }
+
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 40;
+            pointer-events: none;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="game-canvas"></canvas>
+
+    <div id="start-screen" class="ui-layer">
+        <div class="glass-card">
+            <h1 class="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 mb-2 pixel-font leading-snug">GALACTIC<br>CODE QUEST</h1>
+            <p class="text-gray-300 text-sm mb-6">Misi Ulang Kaji: Asas Sains Komputer Tingkatan 2</p>
+            
+            <div class="text-left bg-black bg-opacity-40 p-4 rounded-lg mb-6 border border-blue-900">
+                <h3 class="font-bold text-blue-300 mb-2 text-center">📜 OBJEKTIF MISI</h3>
+                <ul class="text-sm space-y-2 text-gray-200">
+                    <li>🛸 <b>Pemandu Kapal:</b> Anda adalah komander kapal angkasa.</li>
+                    <li>☄️ <b>Elak Halangan:</b> Jauhi asteroid kelabu. (Nyawa -1 jika langgar!)</li>
+                    <li>🎯 <b>Tembak Pod Misi:</b> Tembak pod hijau untuk menjawab soalan.</li>
+                    <li>🧠 <b>Jawab Kuiz:</b> Jawab dengan tepat untuk melepasi halangan sistem.</li>
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-blue-300 text-sm font-bold mb-2 text-left" for="player-name">
+                    👤 Masukkan Nama Anda:
+                </label>
+                <input type="text" id="player-name" placeholder="Cth: Ahmad / Ejen Ali" 
+                       class="w-full p-3 rounded-lg bg-gray-800 border border-blue-500 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-500">
+            </div>
+            
+            <button id="start-btn" class="btn text-lg">🚀 MULA MISI</button>
+        </div>
+    </div>
+
+    <div id="hud" class="hidden">
+        <div>
+            <span class="text-blue-400">XP: </span><span id="score-display">0</span>
+            <br>
+            <span class="text-sm text-gray-300" id="level-display">CHECKPOINT 1/10</span>
+        </div>
+        <div class="text-right">
+            <span class="text-red-400">NYAWA: </span><br>
+            <span id="lives-display" class="tracking-widest">❤️❤️❤️❤️❤️</span>
+        </div>
+    </div>
+
+    <div id="mobile-controls">
+        <div class="control-btn" id="btn-left">◀</div>
+        <div class="control-btn" id="btn-right">▶</div>
+    </div>
+
+    <div id="game-over-screen" class="ui-layer hidden">
+        <div class="glass-card border-red-500" style="box-shadow: 0 0 40px rgba(239, 68, 68, 0.3);">
+            <h2 class="text-4xl font-bold text-red-500 mb-4 pixel-font">MISI GAGAL</h2>
+            <p class="text-gray-300 mb-6">Kapal anda telah musnah terkena asteroid.</p>
+            <button onclick="resetToMainMenu()" class="btn" style="background: linear-gradient(90deg, #ef4444, #b91c1c);">🔄 CUBA LAGI</button>
+        </div>
+    </div>
+
+    <div id="quiz-screen" class="ui-layer hidden" style="background: rgba(0,0,0,0.8);">
+        <div class="glass-card" id="quiz-card">
+            <h2 id="quiz-title" class="text-xl font-bold text-blue-400 mb-2">CHECKPOINT</h2>
+            <p id="quiz-question" class="text-lg mb-6 font-semibold leading-relaxed text-left text-white"></p>
+            
+            <div id="options-container" class="w-full flex flex-col space-y-2">
+                <!-- Options injected here -->
+            </div>
+
+            <!-- Feedback Overlay (Hidden by default) -->
+            <div id="feedback-msg" class="hidden mt-4 p-4 rounded-lg bg-black bg-opacity-50 border border-green-500">
+                <p id="feedback-text" class="font-bold text-green-400 whitespace-pre-line"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="certificate-screen" class="ui-layer hidden">
+        <div class="glass-card" style="border-color: #f59e0b; max-width: 700px;">
+            <div class="text-center mb-6">
+                <p class="text-yellow-400 font-bold mb-2">🎓 SIJIL PENCAPAIAN</p>
+                <h2 class="text-3xl font-bold text-white mb-1 pixel-font">GALACTIC CODER</h2>
+            </div>
+            
+            <div class="bg-black bg-opacity-40 p-6 rounded-lg mb-6 border border-yellow-600">
+                <p class="text-gray-300">Dianugerahkan kepada komander:</p>
+                <h3 id="cert-name" class="text-2xl font-bold text-blue-300 mt-2 mb-4 uppercase">NAMA PELAJAR</h3>
+                
+                <div class="flex justify-center items-center space-x-8">
+                    <div>
+                        <p class="text-sm text-gray-400">Skor (XP)</p>
+                        <p id="cert-score" class="text-2xl font-bold text-white">1000</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-400">Lencana</p>
+                        <p id="cert-badge" class="text-2xl font-bold text-yellow-400">🌟 MASTER</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-6 text-left">
+                <label class="block text-sm text-gray-300 mb-2">📝 Refleksi Akhir (Apa yang anda pelajari hari ini?)</label>
+                <textarea rows="3" class="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white focus:outline-none focus:border-blue-500" placeholder="Tulis refleksi anda di sini..."></textarea>
+            </div>
+
+            <button onclick="resetToMainMenu()" class="btn">🔄 MAIN SEMULA</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const questionsData = [
+        {
+            title: "CHECKPOINT 01 💻 SYSTEM NUMBER",
+            q: "Sistem nombor ______ mempunyai enam belas pilihan digit bermula daripada 0 hingga 9 dan A hingga F.",
+            options: ["A. oktal", "B. binari", "C. desimal", "D. heksadesimal"],
+            answer: 3, // Index 3 (D)
+            successText: "✨ CORRECT!\n⭐ +100 XP",
+            animText: "🚩 CHECKPOINT 2 — PENUKARAN NOMBOR\nJalan memasuki kawasan checkpoint..."
+        },
+        {
+            title: "CHECKPOINT 02 🔢 NUMBER CONVERSION",
+            q: "Tukarkan nombor perpuluhan 567₁₀ kepada nombor perenambelasan.",
+            options: ["A. 357₁₆", "B. 456₁₆", "C. 237₁₆", "D. 23A₁₆"],
+            answer: 2, // Index 2 (C)
+            successText: "✨ CORRECT!\n⭐ +100 XP",
+            animText: "🔑 Kunci emas pixel muncul dan membuka palang jalan."
+        },
+        {
+            title: "CHECKPOINT 03 📟 NILAI TEMPAT",
+            q: "Jadual di bawah merupakan nilai tempat sistem nombor perenambelasan.\nCari nilai y.\n[4096 | y | 16 | 1]",
+            options: ["A. 32", "B. 256", "C. 512", "D. 4096"],
+            answer: 1, // Index 1 (B)
+            successText: "✨ CORRECT!\n⭐ +100 XP",
+            animText: "📟 Nombor 256 muncul sebagai pixel hologram."
+        },
+        {
+            title: "CHECKPOINT 04 🔐 HEX BRIDGE",
+            q: "Tukarkan nombor perenambelasan 7B56A₁₆ kepada nombor perpuluhan.",
+            options: ["A. 505194₁₀", "B. 505195₁₀", "C. 505244₁₀", "D. 505245₁₀"],
+            answer: 0, // Index 0 (A)
+            successText: "✨ CORRECT!\n⭐ +100 XP",
+            animText: "🌉 Jambatan pixel terbuka..."
+        },
+        {
+            title: "CHECKPOINT 05 🖥️ SISTEM NOMBOR & KOMPUTER",
+            q: "Berikut merupakan kenyataan yang benar mengenai sistem penomboran yang digunakan oleh sistem komputer, KECUALI:",
+            options: [
+                "A. Komputer hanya mengenali dua digit (1 dan 0) dikenali sebagai bahasa mesin.",
+                "B. Nombor perenambelasan digunakan mewakili nombor perduaan supaya lebih pendek.",
+                "C. Kod ASCII digunakan untuk membolehkan manusia berinteraksi dengan komputer.",
+                "D. Nombor perlapanan adalah penting mewakili warna pada alatan digital (RGB)."
+            ],
+            answer: 3, // Index 3 (D)
+            successText: "✨ CORRECT!\n⭐ +100 XP",
+            animText: "✅ Komputer diaktifkan! Checkpoint seterusnya dibuka."
+        },
+        {
+            title: "CHECKPOINT 06 ⚠️ DEBUG ZONE",
+            q: "Ralat ______ sukar untuk dikesan dalam atur cara kerana tiada paparan mesej ralat dikeluarkan selepas atur cara dilarikan.",
+            options: ["A. logik", "B. sintaks", "C. masa larian", "D. semakan meja"],
+            answer: 0, // Index 0 (A)
+            successText: "✨ CORRECT!\n⭐ +100 XP",
+            animText: "🛠️ Blok kod yang rosak bertukar menjadi blok kod yang betul."
+        },
+        {
+            title: "CHECKPOINT 07 🔄 STRUKTUR KAWALAN ULANGAN",
+            q: "Struktur kawalan ulangan ______ akan melaksanakan ulangan selagi syarat yang diuji adalah benar.",
+            options: ["A. for", "B. While", "C. tunggal", "D. dwipilihan"],
+            answer: 1, // Index 1 (B)
+            successText: "✨ CORRECT!\n⭐ +100 XP",
+            animText: "🚴 Basikal membuat satu pusingan loop dan bergerak semula ke jalan utama."
+        },
+        {
+            title: "CHECKPOINT 08 ⬇️ STRUKTUR KAWALAN",
+            q: "Struktur kawalan yang melaksanakan arahan baris demi baris mengikut susunan satu aliran sahaja dikenali sebagai ______.",
+            options: ["A. struktur kawalan pilihan", "B. struktur kawalan jujukan", "C. struktur kawalan ulangan", "D. struktur kawalan pilihan bersarang"],
+            answer: 1, // Index 1 (B)
+            successText: "✨ CORRECT!\n⭐ +100 XP",
+            animText: "🚦 Empat blok arahan tersusun menegak dan menyala satu demi satu."
+        },
+        {
+            title: "CHECKPOINT 09 🏖️ FUNGSI PYTHON",
+            q: "Atur cara ingin memaparkan output “MERDEKA!” sebanyak lima kali. Fungsi apakah yang paling sesuai digunakan?",
+            options: ["A. len()", "B. join()", "C. print()", "D. range()"],
+            answer: 2, // Index 2 (C)
+            successText: "✨ CORRECT!\n⭐ +100 XP",
+            animText: "MERDEKA! muncul lima kali dalam gaya pixel ⭐"
+        },
+        {
+            title: "CHECKPOINT 10 🚪 DEBUGGING GATE",
+            q: "__________ ialah proses mencari dan menghapuskan ralat dalam atur cara.",
+            options: ["A. Lelaran", "B. Pentafsir", "C. Penyahpepijat", "D. Penyahimpun"],
+            answer: 2, // Index 2 (C)
+            successText: "✨ CORRECT! MISSION COMPLETE! ✨\n⭐ +100 XP",
+            animText: "🚀 Pintu destinasi penghantaran terbuka luas!"
+        }
+    ];
+
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Resize handler
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Game Variables
+    let isPlaying = false;
+    let inQuizMode = false;
+    let playerName = "";
+    let score = 0;
+    let lives = 5;
+    let currentQuestionIndex = 0;
+    
+    let leftPressed = false;
+    let rightPressed = false;
+
+    // Entities Arrays
+    let stars = [];
+    let bullets = [];
+    let enemies = []; // Question pods
+    let obstacles = []; // Asteroids
+    let particles = [];
+
+    let lastShotTime = 0;
+    const FIRE_RATE = 400; // ms between auto-shots
+    let animationFrameId;
+
+    // Synths for SFX
+    const sfxSynth = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { type: "square" },
+        envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.1 }
+    }).toDestination();
+    sfxSynth.volume.value = -12;
+
+    const damageSynth = new Tone.MembraneSynth().toDestination();
+    damageSynth.volume.value = -5;
+
+    // Background Music (BGM)
+    const bgmSynth = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { type: "sine" },
+        envelope: { attack: 0.5, decay: 1, sustain: 0.5, release: 1 }
+    }).toDestination();
+    bgmSynth.volume.value = -18; // Soft and relaxing
+
+    const chords = [
+        ["C4", "E4", "G4"], 
+        ["A3", "C4", "E4"], 
+        ["F3", "A3", "C4"], 
+        ["G3", "B3", "D4"]
+    ];
+    let chordIndex = 0;
+    const bgmLoop = new Tone.Loop(time => {
+        bgmSynth.triggerAttackRelease(chords[chordIndex], "1m", time);
+        chordIndex = (chordIndex + 1) % chords.length;
+    }, "1m");
+
+    // Audio Play Functions
+    function playShoot() { if(Tone.context.state === 'running') sfxSynth.triggerAttackRelease("C5", "32n"); }
+    function playDamage() { if(Tone.context.state === 'running') damageSynth.triggerAttackRelease("C2", "8n"); }
+    function playCorrect() { 
+        if(Tone.context.state === 'running') {
+            sfxSynth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "4n");
+        }
+    }
+    function playWrong() {
+        if(Tone.context.state === 'running') {
+            sfxSynth.triggerAttackRelease("C3", "8n");
+            setTimeout(() => sfxSynth.triggerAttackRelease("G2", "4n"), 150);
+        }
+    }
+
+    const player = {
+        w: 50, h: 50, x: 0, y: 0, speed: 6,
+        init() {
+            this.x = canvas.width / 2 - this.w / 2;
+            this.y = canvas.height - 100;
+        },
+        draw() {
+            // Draw a futuristic spaceship (triangle with engine glow)
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath();
+            ctx.moveTo(this.x + this.w/2, this.y);
+            ctx.lineTo(this.x + this.w, this.y + this.h);
+            ctx.lineTo(this.x, this.y + this.h);
+            ctx.closePath();
+            ctx.fill();
+
+            // Cockpit
+            ctx.fillStyle = '#93c5fd';
+            ctx.beginPath();
+            ctx.arc(this.x + this.w/2, this.y + this.h/2 + 5, 8, 0, Math.PI*2);
+            ctx.fill();
+
+            // Engine Flame
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.moveTo(this.x + 15, this.y + this.h);
+            ctx.lineTo(this.x + this.w/2, this.y + this.h + Math.random()*15 + 5);
+            ctx.lineTo(this.x + this.w - 15, this.y + this.h);
+            ctx.closePath();
+            ctx.fill();
+        },
+        update() {
+            if (rightPressed && this.x < canvas.width - this.w) this.x += this.speed;
+            if (leftPressed && this.x > 0) this.x -= this.speed;
+        }
+    };
+
+    function createParticle(x, y, color) {
+        particles.push({
+            x: x, y: y,
+            vx: (Math.random() - 0.5) * 10,
+            vy: (Math.random() - 0.5) * 10,
+            life: 1.0,
+            color: color
+        });
+    }
+
+    function initStars() {
+        stars = [];
+        for(let i=0; i<150; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2,
+                speed: Math.random() * 3 + 0.5,
+                color: `rgba(255, 255, 255, ${Math.random()})`
+            });
+        }
+    }
+
+    // Call once on load
+    initStars();
+
+    function gameLoop(timestamp) {
+        update(timestamp);
+        draw();
+        animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    function update(timestamp) {
+        // Always move stars for background effect
+        stars.forEach(s => {
+            s.y += s.speed;
+            if(s.y > canvas.height) { s.y = 0; s.x = Math.random() * canvas.width; }
+        });
+
+        if (!isPlaying || inQuizMode) return;
+
+        player.update();
+
+        // Auto Shoot
+        if (timestamp - lastShotTime > FIRE_RATE) {
+            bullets.push({ x: player.x + player.w/2 - 2, y: player.y, w: 4, h: 15, speed: 10 });
+            playShoot();
+            lastShotTime = timestamp;
+        }
+
+        // Update Bullets (Iterate backwards when removing)
+        for (let i = bullets.length - 1; i >= 0; i--) {
+            let b = bullets[i];
+            b.y -= b.speed;
+            if (b.y < 0) {
+                bullets.splice(i, 1);
+            }
+        }
+
+        // Update Particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx; p.y += p.vy;
+            p.life -= 0.05;
+            if (p.life <= 0) particles.splice(i, 1);
+        }
+
+        // Spawner Logic
+        if (Math.random() < 0.02) {
+            // Spawn Obstacle (Asteroid)
+            obstacles.push({
+                x: Math.random() * (canvas.width - 40),
+                y: -50, w: 40, h: 40, speed: Math.random() * 3 + 2
+            });
+        }
+        
+        // Spawn Enemy (Question Pod) only if none exists and we have questions left
+        if (enemies.length === 0 && currentQuestionIndex < questionsData.length && Math.random() < 0.01) {
+            enemies.push({
+                x: Math.random() * (canvas.width - 50),
+                y: -50, w: 50, h: 50, speed: 2
+            });
+        }
+
+        // Update Obstacles & Collisions
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+            let obs = obstacles[i];
+            obs.y += obs.speed;
+            
+            // Check collision with player
+            if (isCollide(player, obs)) {
+                for(let k=0; k<10; k++) createParticle(obs.x+20, obs.y+20, '#9ca3af');
+                obstacles.splice(i, 1);
+                takeDamage();
+                continue;
+            }
+
+            if (obs.y > canvas.height) obstacles.splice(i, 1);
+        }
+
+        // Update Enemies & Collisions
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            let enemy = enemies[i];
+            enemy.y += enemy.speed;
+            if (enemy.y > canvas.height) enemies.splice(i, 1);
+
+            // Bullet vs Enemy
+            for (let j = bullets.length - 1; j >= 0; j--) {
+                let b = bullets[j];
+                if (isCollide(b, enemy)) {
+                    // Hit!
+                    for(let k=0; k<15; k++) createParticle(enemy.x+25, enemy.y+25, '#10b981');
+                    bullets.splice(j, 1);
+                    enemies.splice(i, 1);
+                    triggerQuiz();
+                    break; 
+                }
+            }
+        }
+    }
+
+    function draw() {
+        // Clear canvas
+        ctx.fillStyle = isPlaying ? 'rgba(5, 5, 20, 0.6)' : 'transparent';
+        if(isPlaying) ctx.fillRect(0, 0, canvas.width, canvas.height);
+        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Stars
+        stars.forEach(s => {
+            ctx.fillStyle = s.color;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        if (!isPlaying || inQuizMode) return;
+
+        player.draw();
+
+        // Draw Bullets (Neon Blue)
+        ctx.fillStyle = '#60a5fa';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#60a5fa';
+        bullets.forEach(b => {
+            ctx.fillRect(b.x, b.y, b.w, b.h);
+        });
+        ctx.shadowBlur = 0; // reset
+
+        // Draw Obstacles (Asteroids - Gray jagged)
+        obstacles.forEach(obs => {
+            ctx.fillStyle = '#6b7280';
+            ctx.beginPath();
+            ctx.arc(obs.x + obs.w/2, obs.y + obs.h/2, obs.w/2, 0, Math.PI*2);
+            ctx.fill();
+            // Crater
+            ctx.fillStyle = '#4b5563';
+            ctx.beginPath();
+            ctx.arc(obs.x + obs.w/3, obs.y + obs.h/3, 5, 0, Math.PI*2);
+            ctx.fill();
+        });
+
+        // Draw Enemies (Green Question Pods)
+        enemies.forEach(en => {
+            ctx.fillStyle = '#10b981';
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#10b981';
+            ctx.fillRect(en.x, en.y, en.w, en.h);
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 24px Inter';
+            ctx.fillText('Q', en.x + 15, en.y + 35);
+            ctx.shadowBlur = 0;
+        });
+
+        // Draw Particles
+        particles.forEach(p => {
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = p.life;
+            ctx.fillRect(p.x, p.y, 4, 4);
+        });
+        ctx.globalAlpha = 1.0;
+    }
+
+    function isCollide(a, b) {
+        return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    }
+
+    document.getElementById('start-btn').addEventListener('click', async () => {
+        const nameInput = document.getElementById('player-name').value.trim();
+        if (!nameInput) {
+            alert("Sila masukkan nama ejen angkasa anda!");
+            return;
+        }
+        playerName = nameInput;
+
+        // MUST Start Tone.js on user click
+        await Tone.start();
+        Tone.Transport.start();
+        bgmLoop.start(0);
+
+        startGame();
+    });
+
+    function startGame() {
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('certificate-screen').classList.add('hidden');
+        document.getElementById('game-over-screen').classList.add('hidden');
+        
+        document.getElementById('hud').classList.remove('hidden');
+        
+        // Show mobile controls if on small screen
+        if (window.innerWidth < 768) {
+            document.getElementById('mobile-controls').style.display = 'flex';
+        }
+
+        // Reset state
+        score = 0;
+        lives = 5;
+        currentQuestionIndex = 0;
+        bullets = [];
+        enemies = [];
+        obstacles = [];
+        particles = [];
+        player.init();
+        
+        updateHUD();
+        
+        isPlaying = true;
+        inQuizMode = false;
+    }
+
+    function updateHUD() {
+        document.getElementById('score-display').innerText = score;
+        document.getElementById('level-display').innerText = `CHECKPOINT ${currentQuestionIndex + 1}/10`;
+        
+        let hearts = "";
+        for(let i=0; i<lives; i++) hearts += "❤️";
+        document.getElementById('lives-display').innerText = hearts;
+    }
+
+    function takeDamage() {
+        playDamage();
+        lives--;
+        updateHUD();
+        
+        // Flash screen red briefly
+        document.getElementById('game-container').style.background = 'rgba(239, 68, 68, 0.5)';
+        setTimeout(() => {
+            document.getElementById('game-container').style.background = 'linear-gradient(to bottom, #050514, #0a0a2a, #110934)';
+        }, 150);
+
+        if (lives <= 0) {
+            endGame(false);
+        }
+    }
+
+    function endGame(win) {
+        isPlaying = false;
+        Tone.Transport.stop();
+        bgmLoop.stop();
+        
+        document.getElementById('hud').classList.add('hidden');
+        document.getElementById('mobile-controls').style.display = 'none';
+
+        if (win) {
+            showCertificate();
+        } else {
+            document.getElementById('game-over-screen').classList.remove('hidden');
+        }
+    }
+
+    function resetToMainMenu() {
+        document.getElementById('game-over-screen').classList.add('hidden');
+        document.getElementById('certificate-screen').classList.add('hidden');
+        document.getElementById('start-screen').classList.remove('hidden');
+    }
+
+    function triggerQuiz() {
+        inQuizMode = true;
+        
+        // Sembunyikan kawalan mobile ketika kuiz
+        document.getElementById('mobile-controls').style.display = 'none';
+
+        const qData = questionsData[currentQuestionIndex];
+        const optsContainer = document.getElementById('options-container');
+        const feedbackMsg = document.getElementById('feedback-msg');
+        const feedbackText = document.getElementById('feedback-text');
+        
+        // Disable all buttons momentarily
+        const allBtns = optsContainer.querySelectorAll('.btn-option');
+        allBtns.forEach(b => b.disabled = true);
+
+        if (selectedIndex === qData.answer) {
+            // CORRECT
+            playCorrect();
+            btnElement.classList.add('correct');
+            
+            feedbackMsg.classList.remove('hidden');
+            feedbackMsg.classList.replace('bg-red-900', 'bg-green-900');
+            feedbackMsg.classList.replace('border-red-500', 'border-green-500');
+            
+            feedbackText.classList.replace('text-red-400', 'text-green-400');
+            feedbackText.innerText = `${qData.successText}\n\n${qData.animText}`;
+            
+            score += 100;
+            currentQuestionIndex++;
+            updateHUD();
+
+            setTimeout(() => {
+                document.getElementById('quiz-screen').classList.add('hidden');
+                
+                if (currentQuestionIndex >= questionsData.length) {
+                    endGame(true); // Win!
+                } else {
+                    inQuizMode = false; // Resume
+                    // Paparkan semula kawalan mobile jika di telefon bimbit
+                    if (window.innerWidth < 768) {
+                        document.getElementById('mobile-controls').style.display = 'flex';
+                    }
+                }
+            }, 3000); // 3 seconds to read the animation text
+
+        } else {
+            // WRONG
+            playWrong();
+            btnElement.classList.add('wrong');
+            
+            const card = document.getElementById('quiz-card');
+            card.classList.remove('shake');
+            void card.offsetWidth; // trigger reflow to restart animation
+            card.classList.add('shake');
+
+            feedbackMsg.classList.remove('hidden');
+            feedbackMsg.classList.add('bg-red-900', 'border-red-500');
+            feedbackMsg.classList.remove('bg-green-900', 'border-green-500');
+            
+            feedbackText.classList.replace('text-green-400', 'text-red-400');
+            feedbackText.innerText = "❌ SALAH! CUBA LAGI.\nFikirkan semula konsep sistem nombor/kawalan.";
+
+            // Re-enable buttons so they can try again (as requested)
+            setTimeout(() => {
+                btnElement.classList.remove('wrong');
+                allBtns.forEach(b => b.disabled = false);
+            }, 1000);
+        }
+    }
+
+    function getBadge(finalScore) {
+        if (finalScore === 1000) return "🌟 GALACTIC MASTER";
+        if (finalScore >= 700) return "🚀 ELITE CODER";
+        if (finalScore >= 400) return "🛸 SPACE EXPLORER";
+        return "⭐ TRAINEE";
+    }
+
+    function showCertificate() {
+        document.getElementById('cert-name').innerText = playerName;
+        document.getElementById('cert-score').innerText = score;
+        document.getElementById('cert-badge').innerText = getBadge(score);
+        document.getElementById('certificate-screen').classList.remove('hidden');
+    }
+
+    // Keyboard Input
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'ArrowRight' || e.code === 'KeyD') rightPressed = true;
+        if (e.code === 'ArrowLeft' || e.code === 'KeyA') leftPressed = true;
+    });
+
+    document.addEventListener('keyup', (e) => {
+        if (e.code === 'ArrowRight' || e.code === 'KeyD') rightPressed = false;
+        if (e.code === 'ArrowLeft' || e.code === 'KeyA') leftPressed = false;
+    });
+
+    // Touch Input
+    const btnLeft = document.getElementById('btn-left');
+    const btnRight = document.getElementById('btn-right');
+
+    btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); leftPressed = true; });
+    btnLeft.addEventListener('touchend', (e) => { e.preventDefault(); leftPressed = false; });
+    
+    btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); rightPressed = true; });
+    btnRight.addEventListener('touchend', (e) => { e.preventDefault(); rightPressed = false; });
+
+    // Start background animation right away
+    requestAnimationFrame(gameLoop);
+
+</script>
+</body>
+</html>
