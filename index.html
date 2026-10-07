@@ -1,70 +1,448 @@
-<!DOCTYPE html>
-<html lang="ms">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Galactic Code Quest</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Tone.js for Audio -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Press+Start+2P&display=swap');
+<script>
+    const questionsData = [
+        {
+            title: "CHECKPOINT 01 💻 SYSTEM NUMBER",
+            q: "Sistem nombor ______ mempunyai enam belas pilihan digit bermula daripada 0 hingga 9 dan A hingga F.",
+            options: ["A. oktal", "B. binari", "C. desimal", "D. heksadesimal"],
+            answer: 3, 
+            successText: "✨ CORRECT!\n⭐ +100 XP",
+            animText: "🚩 CHECKPOINT 2 — PENUKARAN NOMBOR\nJalan memasuki kawasan checkpoint..."
+        },
+        {
+            title: "CHECKPOINT 02 🔢 NUMBER CONVERSION",
+            q: "Tukarkan nombor perpuluhan 567₁₀ kepada nombor perenambelasan.",
+            options: ["A. 357₁₆", "B. 456₁₆", "C. 237₁₆", "D. 23A₁₆"],
+            answer: 2, 
+            successText: "✨ CORRECT!\n⭐ +100 XP",
+            animText: "🔑 Kunci emas pixel muncul dan membuka palang jalan."
+        },
+        {
+            title: "CHECKPOINT 03 📟 NILAI TEMPAT",
+            q: "Jadual di bawah merupakan nilai tempat sistem nombor perenambelasan.\nCari nilai y.\n[4096 | y | 16 | 1]",
+            options: ["A. 32", "B. 256", "C. 512", "D. 4096"],
+            answer: 1, 
+            successText: "✨ CORRECT!\n⭐ +100 XP",
+            animText: "📟 Nombor 256 muncul sebagai pixel hologram."
+        },
+        {
+            title: "CHECKPOINT 04 🔐 HEX BRIDGE",
+            q: "Tukarkan nombor perenambelasan 7B56A₁₆ kepada nombor perpuluhan.",
+            options: ["A. 505194₁₀", "B. 505195₁₀", "C. 505244₁₀", "D. 505245₁₀"],
+            answer: 0, 
+            successText: "✨ CORRECT!\n⭐ +100 XP",
+            animText: "🌉 Jambatan pixel terbuka..."
+        },
+        {
+            title: "CHECKPOINT 05 🖥️ SISTEM NOMBOR & KOMPUTER",
+            q: "Berikut merupakan kenyataan yang benar mengenai sistem penomboran yang digunakan oleh sistem komputer, KECUALI:",
+            options: [
+                "A. Komputer hanya mengenali dua digit (1 dan 0) dikenali sebagai bahasa mesin.",
+                "B. Nombor perenambelasan digunakan mewakili nombor perduaan supaya lebih pendek.",
+                "C. Kod ASCII digunakan untuk membolehkan manusia berinteraksi dengan komputer.",
+                "D. Nombor perlapanan adalah penting mewakili warna pada alatan digital (RGB)."
+            ],
+            answer: 3, 
+            successText: "✨ CORRECT!\n⭐ +100 XP",
+            animText: "✅ Komputer diaktifkan! Checkpoint seterusnya dibuka."
+        },
+        {
+            title: "CHECKPOINT 06 ⚠️ DEBUG ZONE",
+            q: "Ralat ______ sukar untuk dikesan dalam atur cara kerana tiada paparan mesej ralat dikeluarkan selepas atur cara dilarikan.",
+            options: ["A. logik", "B. sintaks", "C. masa larian", "D. semakan meja"],
+            answer: 0, 
+            successText: "✨ CORRECT!\n⭐ +100 XP",
+            animText: "🛠️ Blok kod yang rosak bertukar menjadi blok kod yang betul."
+        },
+        {
+            title: "CHECKPOINT 07 🔄 STRUKTUR KAWALAN ULANGAN",
+            q: "Struktur kawalan ulangan ______ akan melaksanakan ulangan selagi syarat yang diuji adalah benar.",
+            options: ["A. for", "B. While", "C. tunggal", "D. dwipilihan"],
+            answer: 1, 
+            successText: "✨ CORRECT!\n⭐ +100 XP",
+            animText: "🚴 Basikal membuat satu pusingan loop dan bergerak semula ke jalan utama."
+        },
+        {
+            title: "CHECKPOINT 08 ⬇️ STRUKTUR KAWALAN",
+            q: "Struktur kawalan yang melaksanakan arahan baris demi baris mengikut susunan satu aliran sahaja dikenali sebagai ______.",
+            options: ["A. struktur kawalan pilihan", "B. struktur kawalan jujukan", "C. struktur kawalan ulangan", "D. struktur kawalan pilihan bersarang"],
+            answer: 1, 
+            successText: "✨ CORRECT!\n⭐ +100 XP",
+            animText: "🚦 Empat blok arahan tersusun menegak dan menyala satu demi satu."
+        },
+        {
+            title: "CHECKPOINT 09 🏖️ FUNGSI PYTHON",
+            q: "Atur cara ingin memaparkan output “MERDEKA!” sebanyak lima kali. Fungsi apakah yang paling sesuai digunakan?",
+            options: ["A. len()", "B. join()", "C. print()", "D. range()"],
+            answer: 2, 
+            successText: "✨ CORRECT!\n⭐ +100 XP",
+            animText: "MERDEKA! muncul lima kali dalam gaya pixel ⭐"
+        },
+        {
+            title: "CHECKPOINT 10 🚪 DEBUGGING GATE",
+            q: "__________ ialah proses mencari dan menghapuskan ralat dalam atur cara.",
+            options: ["A. Lelaran", "B. Pentafsir", "C. Penyahpepijat", "D. Penyahimpun"],
+            answer: 2, 
+            successText: "✨ CORRECT! MISSION COMPLETE! ✨\n⭐ +100 XP",
+            animText: "🚀 Pintu destinasi penghantaran terbuka luas!"
+        }
+    ];
 
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: #02000d;
-            font-family: 'Inter', sans-serif;
-            color: white;
-            touch-action: none; /* Prevent scroll on mobile */
-            -webkit-user-select: none; /* Safari */
-            -ms-user-select: none; /* IE */
-            user-select: none; /* Standard syntax */
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Resize handler
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Game Variables
+    let isPlaying = false;
+    let inQuizMode = false;
+    let playerName = "Komander";
+    let score = 0;
+    let lives = 5;
+    let currentQuestionIndex = 0;
+    
+    let leftPressed = false;
+    let rightPressed = false;
+
+    // Entities Arrays
+    let stars = [];
+    let bullets = [];
+    let enemies = []; 
+    let obstacles = []; 
+    let particles = [];
+
+    let lastShotTime = 0;
+    const FIRE_RATE = 400;
+    let animationFrameId;
+    
+    // Safe Audio Variables (Prevents crashes in strict browsers)
+    let sfxSynth, damageSynth, bgmSynth, bgmLoop;
+    let audioStarted = false; 
+
+    try {
+        if (typeof Tone !== 'undefined') {
+            sfxSynth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "square" },
+                envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.1 }
+            }).toDestination();
+            sfxSynth.volume.value = -12;
+
+            damageSynth = new Tone.MembraneSynth().toDestination();
+            damageSynth.volume.value = -5;
+
+            bgmSynth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.5, decay: 1, sustain: 0.5, release: 1 }
+            }).toDestination();
+            bgmSynth.volume.value = -18; 
+
+            const chords = [ ["C4", "E4", "G4"], ["A3", "C4", "E4"], ["F3", "A3", "C4"], ["G3", "B3", "D4"] ];
+            let chordIndex = 0;
+            bgmLoop = new Tone.Loop(time => {
+                bgmSynth.triggerAttackRelease(chords[chordIndex], "1m", time);
+                chordIndex = (chordIndex + 1) % chords.length;
+            }, "1m");
+        }
+    } catch (e) {
+        console.log("Audio failed to initialize safely.");
+    }
+
+    // SAFE Audio Play Functions
+    function playShoot() { 
+        try { if (sfxSynth && Tone && Tone.context.state === 'running') sfxSynth.triggerAttackRelease("C5", "32n"); } catch (e) { } 
+    }
+    function playDamage() { 
+        try { if (damageSynth && Tone && Tone.context.state === 'running') damageSynth.triggerAttackRelease("C2", "8n"); } catch (e) { } 
+    }
+    function playCorrect() { 
+        try { if (sfxSynth && Tone && Tone.context.state === 'running') sfxSynth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "4n"); } catch (e) { } 
+    }
+    function playWrong() {
+        try { 
+            if (sfxSynth && Tone && Tone.context.state === 'running') {
+                sfxSynth.triggerAttackRelease("C3", "8n");
+                setTimeout(() => sfxSynth.triggerAttackRelease("G2", "4n"), 150);
+            }
+        } catch (e) { }
+    }
+
+    const player = {
+        w: 50, h: 50, x: 0, y: 0, speed: 6,
+        init() {
+            this.x = canvas.width / 2 - this.w / 2;
+            this.y = canvas.height - 100;
+        },
+        draw() {
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath();
+            ctx.moveTo(this.x + this.w/2, this.y);
+            ctx.lineTo(this.x + this.w, this.y + this.h);
+            ctx.lineTo(this.x, this.y + this.h);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#93c5fd';
+            ctx.beginPath();
+            ctx.arc(this.x + this.w/2, this.y + this.h/2 + 5, 8, 0, Math.PI*2);
+            ctx.fill();
+
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.moveTo(this.x + 15, this.y + this.h);
+            ctx.lineTo(this.x + this.w/2, this.y + this.h + Math.random()*15 + 5);
+            ctx.lineTo(this.x + this.w - 15, this.y + this.h);
+            ctx.closePath();
+            ctx.fill();
+        },
+        update() {
+            if (rightPressed && this.x < canvas.width - this.w) this.x += this.speed;
+            if (leftPressed && this.x > 0) this.x -= this.speed;
+        }
+    };
+
+    function createParticle(x, y, color) {
+        particles.push({
+            x: x, y: y,
+            vx: (Math.random() - 0.5) * 10,
+            vy: (Math.random() - 0.5) * 10,
+            life: 1.0,
+            color: color
+        });
+    }
+
+    function initStars() {
+        stars = [];
+        for(let i=0; i<150; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2,
+                speed: Math.random() * 3 + 0.5,
+                color: `rgba(255, 255, 255, ${Math.random()})`
+            });
+        }
+    }
+
+    initStars();
+
+    function gameLoop(timestamp) {
+        update(timestamp);
+        draw();
+        animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    function update(timestamp) {
+        stars.forEach(s => {
+            s.y += s.speed;
+            if(s.y > canvas.height) { s.y = 0; s.x = Math.random() * canvas.width; }
+        });
+
+        if (!isPlaying || inQuizMode) return;
+
+        player.update();
+
+        if (timestamp - lastShotTime > FIRE_RATE) {
+            bullets.push({ x: player.x + player.w/2 - 2, y: player.y, w: 4, h: 15, speed: 10 });
+            playShoot();
+            lastShotTime = timestamp;
         }
 
-        #game-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(to bottom, #050514, #0a0a2a, #110934);
+        for (let i = bullets.length - 1; i >= 0; i--) {
+            let b = bullets[i];
+            b.y -= b.speed;
+            if (b.y < 0) {
+                bullets.splice(i, 1);
+            }
         }
 
-        canvas {
-            display: block;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx; p.y += p.vy;
+            p.life -= 0.05;
+            if (p.life <= 0) particles.splice(i, 1);
         }
 
-        .ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 50;
-            padding: 20px;
-            box-sizing: border-box;
+        if (Math.random() < 0.006) {
+            obstacles.push({
+                x: Math.random() * (canvas.width - 40),
+                y: -50, w: 40, h: 40, 
+                speed: Math.random() * 2 + 1.5
+            });
+        }
+        
+        if (enemies.length === 0 && currentQuestionIndex < questionsData.length && Math.random() < 0.01) {
+            enemies.push({
+                x: Math.random() * (canvas.width - 50),
+                y: -50, w: 50, h: 50, speed: 2
+            });
         }
 
-        /* Glassmorphism Effect for Main Menu */
-        .glass-card {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 1.5rem;
-            padding: 2.5rem;
-            max-width: 600px;
-            width
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+            let obs = obstacles[i];
+            obs.y += obs.speed;
+
+            if (obs.y > canvas.height) {
+                obstacles.splice(i, 1);
+                continue; 
+            }
+
+            if (isCollide(player, obs)) {
+                for(let k=0; k<10; k++) createParticle(obs.x+20, obs.y+20, '#9ca3af');
+                obstacles.splice(i, 1);
+                takeDamage();
+                continue; 
+            }
+        }
+
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            let enemy = enemies[i];
+            enemy.y += enemy.speed;
+            
+            if (enemy.y > canvas.height) {
+                enemies.splice(i, 1);
+                continue; 
+            }
+
+            if (isCollide(player, enemy)) {
+                for(let k=0; k<15; k++) createParticle(enemy.x+25, enemy.y+25, '#10b981');
+                enemies.splice(i, 1);
+                triggerQuiz();
+                continue; 
+            }
+
+            let hitByBullet = false;
+            for (let j = bullets.length - 1; j >= 0; j--) {
+                let b = bullets[j];
+                if (isCollide(b, enemy)) {
+                    hitByBullet = true;
+                    bullets.splice(j, 1);
+                    break; 
+                }
+            }
+
+            if (hitByBullet) {
+                for(let k=0; k<15; k++) createParticle(enemy.x+25, enemy.y+25, '#10b981');
+                enemies.splice(i, 1);
+                triggerQuiz();
+                continue;
+            }
+        }
+    }
+
+    function draw() {
+        ctx.fillStyle = isPlaying ? 'rgba(5, 5, 20, 0.6)' : 'transparent';
+        if(isPlaying) ctx.fillRect(0, 0, canvas.width, canvas.height);
+        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        stars.forEach(s => {
+            ctx.fillStyle = s.color;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        if (!isPlaying || inQuizMode) return;
+
+        player.draw();
+
+        ctx.fillStyle = '#60a5fa';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#60a5fa';
+        bullets.forEach(b => {
+            ctx.fillRect(b.x, b.y, b.w, b.h);
+        });
+        ctx.shadowBlur = 0;
+
+        obstacles.forEach(obs => {
+            ctx.fillStyle = '#6b7280';
+            ctx.beginPath();
+            ctx.arc(obs.x + obs.w/2, obs.y + obs.h/2, obs.w/2, 0, Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle = '#4b5563';
+            ctx.beginPath();
+            ctx.arc(obs.x + obs.w/3, obs.y + obs.h/3, 5, 0, Math.PI*2);
+            ctx.fill();
+        });
+
+        enemies.forEach(en => {
+            ctx.fillStyle = '#10b981';
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#10b981';
+            ctx.fillRect(en.x, en.y, en.w, en.h);
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 24px Inter';
+            ctx.fillText('Q', en.x + 15, en.y + 35);
+            ctx.shadowBlur = 0;
+        });
+
+        particles.forEach(p => {
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = p.life;
+            ctx.fillRect(p.x, p.y, 4, 4);
+        });
+        ctx.globalAlpha = 1.0;
+    }
+
+    function isCollide(a, b) {
+        if (!a || !b) return false;
+        return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    }
+
+    /* ====== INPUT HANDLING (KEYBOARD & TOUCH) ====== */
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') leftPressed = true;
+        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') rightPressed = true;
+    });
+
+    window.addEventListener('keyup', (e) => {
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') leftPressed = false;
+        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') rightPressed = false;
+    });
+
+    const btnLeft = document.getElementById('btn-left');
+    const btnRight = document.getElementById('btn-right');
+
+    btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); leftPressed = true; }, {passive: false});
+    btnLeft.addEventListener('touchend', (e) => { e.preventDefault(); leftPressed = false; }, {passive: false});
+    btnLeft.addEventListener('touchcancel', (e) => { leftPressed = false; }, {passive: false});
+    
+    btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); rightPressed = true; }, {passive: false});
+    btnRight.addEventListener('touchend', (e) => { e.preventDefault(); rightPressed = false; }, {passive: false});
+    btnRight.addEventListener('touchcancel', (e) => { rightPressed = false; }, {passive: false});
+
+    canvas.addEventListener('touchmove', (e) => {
+        if (!isPlaying || inQuizMode) return;
+        e.preventDefault(); 
+        if (!e.touches || e.touches.length === 0) return;
+        
+        const touch = e.touches[0];
+        player.x = touch.clientX - (player.w / 2);
+        
+        if (player.x < 0) player.x = 0;
+        if (player.x > canvas.width - player.w) player.x = canvas.width - player.w;
+    }, { passive: false });
+
+    /* ====== GAME LOGIC ====== */
+
+    const startAction = (e) => {
+        e.preventDefault(); 
+        
+        // Auto-assign default name if they leave it blank (prevents stuck screen)
+        let nameInput = document.getElementById('player-name').value.trim();
+        if (!nameInput) nameInput = "Komander";
+        playerName = nameInput;
+
+        // START UI IMMEDIATELY
+        startGame();
+
+        // START AUDIO SAFELY IN BACKGROUND
+        try {
+            if (typeof Tone !== 'undefined') {
+                Tone.start().then(() => {
+                    if (!audioStarted && bgmLoop) {
+                        bgmLoop.start
